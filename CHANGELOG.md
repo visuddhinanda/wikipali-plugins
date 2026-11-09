@@ -3,6 +3,16 @@
 本项目的重要变更都记录在这里。格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。最新版本在最前面。
 
+## [0.24.0] - 2026-11-09
+
+### 新增
+- **`wikipali versions <book>:<para> --chapter`**：按章查版本，列出这一章有哪些公开 channel 及各自的完成度
+  （按完成度降序、按类型分组）。补上了 `versions` 只能按段落查、只能用章节起始段近似整章的缺口。
+  走 `GET /v3/tipitaka-chapter-channels/{book}/{para}`；站点还没有这条路由时提示退回段落粒度。
+
+### 变更
+- `docs/wikipali-api-calls.md` 加第 51 节；功能覆盖清单、research skill、`api-read.md` 同步说明 `--chapter`。
+
 ## [0.23.1 / wikipali-workspace 0.2.0] - 2026-11-06
 
 ### 新增
