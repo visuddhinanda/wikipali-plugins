@@ -53,6 +53,7 @@
 | 读 | `GET {API}/v3/tipitaka-related-paragraphs` | CST 锚点（书名+段号）→ 各层对照段落（v3） |
 | 读 | `GET {API}/v3/tipitaka-related-paragraphs/aggregate` | 列出有 CST 锚点的 book_name（可反查 file/book） |
 | 读 | `GET {API}/v3/tipitaka-related-paragraphs/aggregate/{book_name}` | 列出某 book_name 下的全部 CST 段号 |
+| 读 | `GET {API}/v3/tipitaka-chapter-channels/{book}/{para}` | 一章有哪些公开 channel 及各自完成度（`versions --chapter`） |
 | 认证/模型 | `POST {API}/v2/sign-in` | 用户名+密码登录，返回 JWT 字符串 |
 | 认证/模型 | `GET {API}/v2/auth/current` | 取当前登录用户信息（realName 即 studio_name） |
 | 认证/模型 | `GET {API}/v2/ai-model` | 查 AI 模型记录列表 |
@@ -591,6 +592,19 @@ v3 约定：成功 `{data:…}`（列表带 `meta` 分页），失败 Problem De
   `run_id` 为 null 表示那次提问还没入库（评价先到）。不含账号身份。
 
 # 附录
+
+## 51. 一章有哪些 channel —— `GET {API}/v3/tipitaka-chapter-channels/{book}/{para}`
+
+`versions --chapter` 用。取代 v2 `progress?view=chapter_channels`；段落粒度的 `versions`
+（`v2/channel?view=paragraphs`）不变。
+
+- **入参**：路径 `book`、`para`（章节起始段，不是章内任意段——非起始段返回空列表）；
+  查询 `per_page`（最大 200，客户端传 200 一次取全，单章最多几十个）、`page`。
+- **返回**：`data[] = { id, book, para, progress, progress_line, views, updated_at,
+  channel{id, name, type, lang}, studio{id, nickName, realName, avatar?}|null }`，
+  按 `progress`（0–1）降序；`meta` 是 Laravel 分页。
+  - 不带凭据调用，只列**公开** channel（服务端按登录身份过滤可见性）。
+  - 旧站点没有这条路由时 404，客户端提示退回段落粒度的 `versions`。
 
 ## 常见错误约定
 

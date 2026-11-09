@@ -194,7 +194,7 @@ data.content → [ {book, para, channels, sentences: [[139,861,2,8], …], mode,
 `{{141-120-17-40}}` 一致——读到什么就能直接引用什么。
 
 不带 `channels` 时也返回 `tranNum` / `nissayaNum` / `commNum` / `simNum`，等于**免费给出
-章节级的「有哪些资源」**（`versions` 只能按段落查，这里补上了章节粒度）。
+章节级的「有哪些资源」**（只有计数；要知道是哪些 channel、各完成多少，用 `versions --chapter`）。
 
 ### ⚠ content 与 html 按 channel 类型互补，不能只取一个
 

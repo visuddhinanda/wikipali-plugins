@@ -140,7 +140,9 @@ def build_parser():
     p.set_defaults(func=cmd_read.cmd_chapter)
 
     p = add('versions', '某坐标有哪些译本，以及没有哪些')
-    p.add_argument('coord', help='book:paragraph')
+    p.add_argument('coord', help='book:paragraph；加 --chapter 时 paragraph 是章节起始段')
+    p.add_argument('--chapter', action='store_true',
+                   help='按章查：这一章有哪些公开 channel 及各自完成度（v3/tipitaka-chapter-channels）')
     p.set_defaults(func=cmd_read.cmd_versions)
 
     p = add('count', '词频合计（词次，不是段落数）')

@@ -760,6 +760,8 @@ def pick_body(child, wanted_channels):
 
 
 def cmd_versions(args):
+    if getattr(args, 'chapter', False):
+        return cmd_chapter_versions(args)
     client = make_client(args)
     book, para = parse_coord(args.coord)
     try:
@@ -797,6 +799,51 @@ def cmd_versions(args):
             print('如实报告「无」，不要拿相邻段落或别的译本凑。')
         print('\n标 ⚠疑似机器译 的按机器译文标注引用。**没标的不等于是人译**——'
               '名字判断很脆弱，权威做法是 wikipali get 看作者是不是模型，见 conventions.md。')
+
+    emit(args, rows, render)
+    return 0
+
+
+def cmd_chapter_versions(args):
+    """versions --chapter：按章查，带完成度。
+
+    段落粒度的 versions 只能拿章节起始段近似整章（某译本只译了半章时会偏）；
+    这里直接问服务端「这一章有哪些 channel、各完成了多少」。不登录，只列公开 channel。
+    """
+    client = make_client(args)
+    book, para = parse_coord(args.coord)
+    try:
+        rows = client.call('GET', f'v3/tipitaka-chapter-channels/{book}/{para}', v3=True,
+                           query={'per_page': 200}, timeout=READ_TIMEOUT)
+    except ApiError as exc:
+        if exc.status == 404:
+            raise WpError(
+                f'站点 {client.api_url} 还没有按章查版本的接口（v3/tipitaka-chapter-channels）。\n'
+                f'先用段落粒度：wikipali versions {book}:{para}'
+            )
+        raise explain_api_error(exc, f'查 {book}:{para} 这一章的译本')
+    rows = rows or []
+
+    def render():
+        if not rows:
+            print(f'{book}:{para} 这一章没有任何公开 channel 的进度记录。')
+            print(f'{para} 必须是章节起始段；不确定就先 wikipali chapter {book}:{para} 看章节起点，'
+                  f'或退回段落粒度 wikipali versions {book}:{para}。')
+            return
+        print(f'{book}:{para} 这一章有 {len(rows)} 个公开 channel（按完成度从高到低）：\n')
+        by_type = {}
+        for r in rows:
+            by_type.setdefault((r.get('channel') or {}).get('type') or '?', []).append(r)
+        for typ in sorted(by_type):
+            print(f'  [{typ}]')
+            for r in by_type[typ]:
+                ch = r.get('channel') or {}
+                name_l = (ch.get('name') or '').lower()
+                ai = ' ⚠疑似机器译' if any(h in name_l for h in MACHINE_HINTS) else ''
+                pct = f'{float(r.get("progress") or 0) * 100:5.1f}%'
+                print(f'    {pct}  {str(ch.get("lang")):<8} {str(ch.get("name"))[:36]:<38} {ch.get("id")}{ai}')
+        print('\n完成度是这一章已译句子的比例；不到 100% 的译本引用前先 wikipali get 确认那一段确实有译文。')
+        print('标 ⚠疑似机器译 的按机器译文标注引用。**没标的不等于是人译**，见 conventions.md。')
 
     emit(args, rows, render)
     return 0

@@ -56,6 +56,7 @@
 | 整章内容 | ✅ | `chapter --fetch` → `GET /v2/tipitaka-content/{book}-{para}` |
 | 按坐标取句 | ✅ | `get` → `GET /v2/sentence?view=paragraph` |
 | 某坐标有哪些版本 | ✅ | `versions` → `GET /v2/channel?view=paragraphs` |
+| 某章有哪些版本 + 完成度 | ✅ | `versions --chapter` → `GET /v3/tipitaka-chapter-channels/{book}/{para}` |
 | 检索 | ✅ | `search` → `GET /v2/search-pali-wbw` |
 | 出处分布 | ✅ | `dist` → `GET /v2/search-pali-wbw-books` |
 | 短语检索 | ⬜ | `/v3/search`（OpenSearch）调试中 |
@@ -221,8 +222,9 @@
 版本会撑爆上下文，而研究本来就是逐个版本读。`versions` → `get/chapter --channel`
 这条链就是最终形态。
 
-**`versions` 的粒度缺口。** 它按段落查，而实际用法常是按章节查，目前用章节起始段
-近似。同一章内不同段落的版本覆盖可能不同（某译本只译半章）。
+**`versions` 的粒度缺口（已补）。** 默认按段落查；按章查用 `versions --chapter`
+（v3 `tipitaka-chapter-channels`，带完成度，只列公开 channel）。某译本只译了半章时，
+完成度会小于 100%，引用前仍要 `get` 确认那一段确实有译文。
 
 **站点不是同一个库。** 线上四站共享库与密钥；`staging` 与 `local` 各是另一个库，
 凭据与本地缓存都按桶隔离，自动 fallback 只在线上四站之间发生。**在 staging 上查到
